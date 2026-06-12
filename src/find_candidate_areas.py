@@ -1,15 +1,12 @@
 import numpy as np
 
-print("NEW FIND_TEXT_AREA LOADED")
-
-def find_text_area(mask):
+def find_candidate_areas(mask):
 
     rows, cols = mask.shape
 
     heights = [0] * cols
 
-    best_area = 0
-    best_rect = None
+    rectangles = []
 
     for r in range(rows):
 
@@ -54,25 +51,30 @@ def find_text_area(mask):
 
                 area = h * w
 
-                if area > best_area:
+                if area < 10000:
+                    continue
 
-                    best_area = area
+                x = (
+                    0
+                    if not stack
+                    else stack[-1] + 1
+                )
 
-                    x = (
-                        0
-                        if not stack
-                        else stack[-1] + 1
-                    )
+                y = r - h + 1
 
-                    y = r - h + 1
-
-                    best_rect = (
+                rectangles.append(
+                    (
                         int(x),
                         int(y),
                         int(w),
-                        int(h)
+                        int(h),
+                        int(area)
                     )
+                )
 
-    print("BEST RECT =", best_rect)
+    rectangles.sort(
+        key=lambda x: x[4],
+        reverse=True
+    )
 
-    return best_rect
+    return rectangles[:10]
