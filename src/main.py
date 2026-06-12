@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from PIL import Image
 
 from detector import detect_objects
@@ -13,6 +14,7 @@ image_path = "assets/images/sample.jpg"
 template_path = "assets/templates/template1.png"
 
 boxes = detect_objects(image_path)
+print(boxes)
 
 img = cv2.imread(image_path)
 
@@ -30,6 +32,32 @@ adjusted = smart_resize(
 cv2.imwrite(
     "output/adjusted.jpg",
     adjusted
+)
+
+adjusted_boxes = detect_objects(
+    "output/adjusted.jpg"
+)
+
+boxes = adjusted_boxes
+
+print("ADJUSTED BOXES")
+print(boxes)
+
+debug = adjusted.copy()
+
+for x1,y1,x2,y2 in boxes:
+
+    cv2.rectangle(
+        debug,
+        (x1,y1),
+        (x2,y2),
+        (0,255,0),
+        3
+    )
+
+cv2.imwrite(
+    "output/debug_boxes.jpg",
+    debug
 )
 
 base = Image.open(
@@ -54,6 +82,16 @@ safe_mask = remove_objects_from_safe_area(
 
 area = find_text_area(
     safe_mask
+)
+
+debug_mask = (
+    safe_mask.astype(np.uint8)
+    * 255
+)
+
+cv2.imwrite(
+    "output/debug_safe_mask.png",
+    debug_mask
 )
 
 print("TEXT AREA =", area)
