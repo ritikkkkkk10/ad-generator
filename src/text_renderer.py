@@ -1,6 +1,74 @@
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageFont
+import textwrap
 
-from layout_engine import fit_text_block
+FONT_BOLD = "C:/Windows/Fonts/arialbd.ttf"
+FONT_REGULAR = "C:/Windows/Fonts/arial.ttf"
+
+
+def fit_font(draw, text, max_width, start_size=80):
+
+    size = start_size
+
+    while size > 10:
+
+        font = ImageFont.truetype(
+            FONT_BOLD,
+            size
+        )
+
+        bbox = draw.textbbox(
+            (0,0),
+            text,
+            font=font
+        )
+
+        width = bbox[2] - bbox[0]
+
+        if width <= max_width:
+            return font
+
+        size -= 2
+
+    return ImageFont.truetype(
+        FONT_BOLD,
+        10
+    )
+
+
+def wrap_text(draw, text, font, max_width):
+
+    words = text.split()
+
+    lines = []
+    current = ""
+
+    for word in words:
+
+        test = word if current == "" else current + " " + word
+
+        bbox = draw.textbbox(
+            (0,0),
+            test,
+            font=font
+        )
+
+        width = bbox[2] - bbox[0]
+
+        if width <= max_width:
+
+            current = test
+
+        else:
+
+            if current:
+                lines.append(current)
+
+            current = word
+
+    if current:
+        lines.append(current)
+
+    return lines
 
 
 def render_text(
@@ -10,63 +78,105 @@ def render_text(
 
     draw = ImageDraw.Draw(image)
 
-    layout = fit_text_block(
-        draw,
-        area,
-        text_data
-    )
-
-    if layout is None:
-        return image
-
-    x, y, w, h = area
-
-    headline_font = layout["headline_font"]
-    sub_font = layout["sub_font"]
-    cta_font = layout["cta_font"]
+    x,y,w,h = area
 
     headline = text_data["headline"]
-    lines = layout["wrapped_lines"]
+    highlight = text_data["highlight"]
+    subheadline = text_data["subheadline"]
     cta = text_data["cta"]
+
+    headline_font = fit_font(
+        draw,
+        headline,
+        w-20,
+        80
+    )
+
+    highlight_font = fit_font(
+        draw,
+        highlight,
+        w-20,
+        70
+    )
+
+    sub_font = ImageFont.truetype(
+        FONT_REGULAR,
+        24
+    )
+
+    cta_font = ImageFont.truetype(
+        FONT_BOLD,
+        24
+    )
+
+    sub_lines = wrap_text(
+        draw,
+        subheadline,
+        sub_font,
+        w-20
+    )
 
     current_y = y + 15
 
+    # HEADLINE
+
     draw.text(
-        (x + 15, current_y),
+        (x+10,current_y),
         headline,
-        fill=(0, 0, 0),
+        fill=(0,0,0),
         font=headline_font
     )
 
-    headline_bbox = draw.textbbox(
-        (x + 15, current_y),
+    bbox = draw.textbbox(
+        (x+10,current_y),
         headline,
         font=headline_font
     )
 
-    current_y = headline_bbox[3] + 15
+    current_y = bbox[3] + 10
 
-    for line in lines:
+    # SUBHEADLINE
+
+    for line in sub_lines:
 
         draw.text(
-            (x + 15, current_y),
+            (x+10,current_y),
             line,
-            fill=(60, 60, 60),
+            fill=(60,60,60),
             font=sub_font
         )
 
         bbox = draw.textbbox(
-            (x + 15, current_y),
+            (x+10,current_y),
             line,
             font=sub_font
         )
 
         current_y = bbox[3] + 5
 
-    current_y += 10
+    current_y += 5
+
+    # HIGHLIGHT
+
+    draw.text(
+        (x+10,current_y),
+        highlight,
+        fill=(0,51,255),
+        font=highlight_font
+    )
+
+    bbox = draw.textbbox(
+        (x+10,current_y),
+        highlight,
+        font=highlight_font
+    )
+
+    current_y = bbox[3] + 15
+
+    # CTA BUTTON
 
     cta_bbox = draw.textbbox(
-        (0, 0),
+        (0,0),
         cta,
         font=cta_font
     )
@@ -74,26 +184,26 @@ def render_text(
     tw = cta_bbox[2] - cta_bbox[0]
     th = cta_bbox[3] - cta_bbox[1]
 
-    padding = 12
+    pad = 10
 
     draw.rounded_rectangle(
         (
-            x + 15,
+            x+10,
             current_y,
-            x + 15 + tw + padding * 2,
-            current_y + th + padding * 2
+            x+10+tw+pad*2,
+            current_y+th+pad*2
         ),
         radius=10,
-        fill=(0, 51, 255)
+        fill=(0,51,255)
     )
 
     draw.text(
         (
-            x + 15 + padding,
-            current_y + padding
+            x+10+pad,
+            current_y+pad
         ),
         cta,
-        fill=(255, 255, 255),
+        fill=(255,255,255),
         font=cta_font
     )
 

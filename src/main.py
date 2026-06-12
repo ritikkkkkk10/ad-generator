@@ -194,13 +194,10 @@ final = Image.alpha_composite(
 # --------------------------
 
 text_data = {
-    "headline": "HOME LOAN",
-    "subheadline": (
-        "Get home loans with rates "
-        "starting at 8.25 percent "
-        "and fast approval process"
-    ),
-    "cta": "APPLY NOW"
+    "headline":"HOME LOAN",
+    "subheadline":"Get home loans with fast approval process",
+    "highlight":"8.25%",
+    "cta":"APPLY NOW"
 }
 
 
