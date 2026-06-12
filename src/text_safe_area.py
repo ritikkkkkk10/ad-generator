@@ -10,13 +10,20 @@ def remove_objects_from_safe_area(
 
     for x1, y1, x2, y2 in boxes:
 
-        pad = 40
+        pad = 20
 
         x1 = max(0, int(x1 - pad))
-        y1 = max(0, int(y1 - pad))
-
         x2 = min(w, int(x2 + pad))
-        y2 = min(h, int(y2 + pad))
+
+        person_height = y2 - y1
+
+        # only protect upper 35%
+        face_bottom = int(
+            y1 + person_height * 0.35
+        )
+
+        y1 = max(0, int(y1 - pad))
+        y2 = min(h, int(face_bottom + pad))
 
         mask[y1:y2, x1:x2] = False
 

@@ -8,37 +8,46 @@ def find_text_area(mask):
         * 255
     )
 
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+    contours, _ = cv2.findContours(
         mask_u8,
-        connectivity=8
+        cv2.RETR_LIST,
+        cv2.CHAIN_APPROX_SIMPLE
     )
 
     best = None
-    best_area = 0
+    best_score = 0
 
-    for i in range(1, num_labels):
+    for c in contours:
 
-        x = stats[i, cv2.CC_STAT_LEFT]
-        y = stats[i, cv2.CC_STAT_TOP]
-        w = stats[i, cv2.CC_STAT_WIDTH]
-        h = stats[i, cv2.CC_STAT_HEIGHT]
+        x, y, w, h = cv2.boundingRect(c)
 
         area = w * h
 
-        if area < 10000:
+        if area < 5000:
             continue
 
-        if area > best_area:
-            best_area = area
-            best = (x, y, w, h)
+        aspect = w / max(h, 1)
+
+        # Prefer wide rectangles
+        score = area * min(aspect, 3)
+
+        if score > best_score:
+
+            best_score = score
+            best = (
+                int(x),
+                int(y),
+                int(w),
+                int(h)
+            )
 
     if best is None:
 
         return (
-            50,
-            50,
-            300,
-            200
+            20,
+            20,
+            250,
+            150
         )
 
     return best

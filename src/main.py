@@ -10,6 +10,8 @@ from text_safe_area import remove_objects_from_safe_area
 from find_text_area import find_text_area
 from text_renderer import render_text
 
+from debug_area import draw_area
+
 image_path = "assets/images/sample.jpg"
 template_path = "assets/templates/template1.png"
 
@@ -83,6 +85,20 @@ safe_mask = remove_objects_from_safe_area(
 area = find_text_area(
     safe_mask
 )
+
+debug = adjusted.copy()
+
+debug = draw_area(
+    debug,
+    area
+)
+
+cv2.imwrite(
+    "output/debug_text_area.jpg",
+    debug
+)
+
+print("TEXT AREA =", area)
 
 debug_mask = (
     safe_mask.astype(np.uint8)
