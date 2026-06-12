@@ -1,53 +1,78 @@
-import cv2
 import numpy as np
+
+print("NEW FIND_TEXT_AREA LOADED")
 
 def find_text_area(mask):
 
-    mask_u8 = (
-        mask.astype(np.uint8)
-        * 255
-    )
+    rows, cols = mask.shape
 
-    contours, _ = cv2.findContours(
-        mask_u8,
-        cv2.RETR_LIST,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
+    heights = [0] * cols
 
-    best = None
-    best_score = 0
+    best_area = 0
+    best_rect = None
 
-    for c in contours:
+    for r in range(rows):
 
-        x, y, w, h = cv2.boundingRect(c)
+        for c in range(cols):
 
-        area = w * h
+            if mask[r, c]:
+                heights[c] += 1
+            else:
+                heights[c] = 0
 
-        if area < 5000:
-            continue
+        stack = []
 
-        aspect = w / max(h, 1)
+        c = 0
 
-        # Prefer wide rectangles
-        score = area * min(aspect, 3)
+        while c <= cols:
 
-        if score > best_score:
-
-            best_score = score
-            best = (
-                int(x),
-                int(y),
-                int(w),
-                int(h)
+            current_height = (
+                heights[c]
+                if c < cols
+                else 0
             )
 
-    if best is None:
+            if (
+                not stack
+                or current_height >= heights[stack[-1]]
+            ):
 
-        return (
-            20,
-            20,
-            250,
-            150
-        )
+                stack.append(c)
+                c += 1
 
-    return best
+            else:
+
+                top = stack.pop()
+
+                h = heights[top]
+
+                w = (
+                    c
+                    if not stack
+                    else c - stack[-1] - 1
+                )
+
+                area = h * w
+
+                if area > best_area:
+
+                    best_area = area
+
+                    x = (
+                        0
+                        if not stack
+                        else stack[-1] + 1
+                    )
+
+                    y = r - h + 1
+
+                    best_rect = (
+                        int(x),
+                        int(y),
+                        int(w),
+                        int(h)
+                    )
+
+    print("BEST RECT =", best_rect)
+
+    return best_rect

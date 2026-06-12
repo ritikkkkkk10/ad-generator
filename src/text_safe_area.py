@@ -18,9 +18,8 @@ def remove_objects_from_safe_area(
         person_height = y2 - y1
 
         # only protect upper 35%
-        face_bottom = int(
-            y1 + person_height * 0.35
-        )
+        # protect entire person
+        face_bottom = y2
 
         y1 = max(0, int(y1 - pad))
         y2 = min(h, int(face_bottom + pad))
